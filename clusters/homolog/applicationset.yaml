@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: togglemaster-services
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - list:
+        elements:
+          - name: auth-service
+          - name: flag-service
+          - name: targeting-service
+          - name: evaluation-service
+          - name: analytics-service
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  template:
+    metadata:
+      name: "{{.name}}"
+      labels:
+        app.kubernetes.io/part-of: togglemaster
+    spec:
+      project: togglemaster
+      source:
+        repoURL: https://github.com/JulioDinizN/tech-challenge-fase-3-gitops.git
+        targetRevision: main
+        path: "apps/{{.name}}/overlays/homolog"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: togglemaster
+      syncPolicy:
+        automated:
+          enabled: false
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,52 @@
+name: Validate GitOps
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Render and scan desired state
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out GitOps source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate repository structure
+        run: python3 scripts/validate_structure.py
+
+      - name: Render every Kustomize root
+        run: |
+          roots=(
+            platform/overlays/homolog
+            clusters/homolog
+            apps/auth-service/overlays/homolog
+            apps/flag-service/overlays/homolog
+            apps/targeting-service/overlays/homolog
+            apps/evaluation-service/overlays/homolog
+            apps/analytics-service/overlays/homolog
+          )
+          for root in "${roots[@]}"; do
+            docker run --rm \
+              --volume "$PWD:/workspace" \
+              --workdir /workspace \
+              registry.k8s.io/kubectl:v1.34.2 \
+              kustomize "$root" >/dev/null
+          done
+
+      - name: Set up Trivy
+        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.74.0
+          cache: true
+
+      - name: Scan Kubernetes configuration
+        continue-on-error: ${{ vars.SECURITY_GATE_ENABLED != 'true' }}
+        run: trivy config --severity CRITICAL --exit-code 1 .

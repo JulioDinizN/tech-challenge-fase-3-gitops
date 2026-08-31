@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+images:
+  - name: togglemaster/evaluation-service
+    newName: ocir.invalid/togglemaster-phase3/evaluation-service
+    newTag: bootstrap
+
+labels:
+  - pairs:
+      app.kubernetes.io/environment: homolog
