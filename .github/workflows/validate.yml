@@ -20,7 +20,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate repository structure
-        run: python3 scripts/validate_structure.py
+        run: |
+          python3 -m pip install -r scripts/requirements.txt
+          python3 scripts/validate_structure.py
+          if [[ "${{ vars.DEPLOYMENT_READY }}" == "true" ]]; then python3 scripts/validate_structure.py --ready; fi
 
       - name: Render every Kustomize root
         run: |
@@ -48,5 +51,4 @@ jobs:
           cache: true
 
       - name: Scan Kubernetes configuration
-        continue-on-error: ${{ vars.SECURITY_GATE_ENABLED != 'true' }}
         run: trivy config --severity CRITICAL --exit-code 1 .

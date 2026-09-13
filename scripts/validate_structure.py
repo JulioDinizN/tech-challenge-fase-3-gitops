@@ -1,56 +1,59 @@
 #!/usr/bin/env python3
-"""Validate the GitOps scaffold without contacting a cluster."""
-
-from __future__ import annotations
-
+"""Validate rendered GitOps ownership; --ready rejects deployment placeholders."""
 from pathlib import Path
+import argparse
 import re
+import subprocess
 import sys
-
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVICES = (
-    "auth-service",
-    "flag-service",
-    "targeting-service",
-    "evaluation-service",
-    "analytics-service",
-)
-FORBIDDEN = (
-    re.compile(r"(?i)password\s*:\s*[^_<{\s]"),
-    re.compile(r"(?i)auth[_-]?token\s*:\s*[^_<{\s]"),
-    re.compile(r"BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY"),
-)
+SERVICES = ('auth-service', 'flag-service', 'targeting-service', 'evaluation-service', 'analytics-service')
+PLACEHOLDER = re.compile(r'__[A-Z0-9_]+__|ocir\.invalid|replace-with|:bootstrap|:latest')
 
 
-def main() -> int:
-    errors: list[str] = []
-    for service in SERVICES:
-        path = ROOT / "apps" / service / "overlays" / "homolog" / "kustomization.yaml"
-        if not path.is_file():
-            errors.append(f"missing overlay: {path.relative_to(ROOT)}")
+def validate(root, ready=False):
+    errors, owners = [], {}
+    for owner, path in [('platform', root/'platform/overlays/homolog')] + [(s, root/'apps'/s/'overlays/homolog') for s in SERVICES]:
+        result = subprocess.run(['kubectl', 'kustomize', str(path)], capture_output=True, text=True)
+        if result.returncode:
+            errors.append(f'{owner}: Kustomize failed: {result.stderr.strip()}')
             continue
-        text = path.read_text(encoding="utf-8")
-        if f"- name: togglemaster/{service}" not in text:
-            errors.append(f"missing image block for {service}")
+        docs = [d for d in yaml.safe_load_all(result.stdout) if d]
+        if ready and PLACEHOLDER.search(result.stdout):
+            errors.append(f'{owner}: unresolved endpoint or image placeholders')
+        if owner in SERVICES:
+            for kind in ['Deployment', 'Service', 'ServiceAccount']:
+                if sum(d['kind'] == kind and d['metadata']['name'] == owner for d in docs) != 1:
+                    errors.append(f'{owner}: expected exactly one {kind}')
+            for d in docs:
+                if d['kind'] == 'Deployment' and ready:
+                    image = d['spec']['template']['spec']['containers'][0]['image']
+                    if not re.fullmatch(r'[^\s]+:sha-[0-9a-f]{12}', image):
+                        errors.append(f'{owner}: image must use sha-<12 hex>')
+        for d in docs:
+            key = (d['apiVersion'], d['kind'], d['metadata'].get('namespace', ''), d['metadata']['name'])
+            if key in owners:
+                errors.append(f'duplicate ownership: {key}, {owners[key]} and {owner}')
+            owners[key] = owner
+            if d['kind'] == 'Secret':
+                errors.append(f'{owner}: rendered Secret values must not be committed')
+        print(f'{owner}: {len(docs)} resources')
+    return errors
 
-    for path in ROOT.rglob("*"):
-        if not path.is_file() or ".git" in path.parts:
-            continue
-        if path.suffix not in {".yaml", ".yml", ".json", ".md"}:
-            continue
-        text = path.read_text(encoding="utf-8")
-        for pattern in FORBIDDEN:
-            if pattern.search(text):
-                errors.append(f"possible committed secret in {path.relative_to(ROOT)}")
 
-    if errors:
-        for error in errors:
-            print(f"error: {error}", file=sys.stderr)
-        return 1
-    print("GitOps structure is valid and no obvious secret values were found")
-    return 0
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ready', action='store_true')
+    parser.add_argument('--root', type=Path, default=ROOT)
+    args = parser.parse_args()
+    errors = validate(args.root, args.ready)
+    for error in errors:
+        print('error: ' + error, file=sys.stderr)
+    if not errors:
+        print('GitOps manifests validated' + (' for configured deployment inputs' if args.ready else '; readiness requires --ready after configuration'))
+    return bool(errors)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

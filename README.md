@@ -2,7 +2,7 @@
 
 Repositório do estado desejado Kubernetes para o Tech Challenge Fase 3.
 
-Este scaffold não instala Argo CD, não acessa o OKE e não aplica manifests. As políticas de auto-sync estão explicitamente desabilitadas até a infraestrutura, os secrets de bootstrap e os manifests migrados serem revisados.
+Este repositório não instala Argo CD, não acessa o OKE e não aplica manifests. As políticas de auto-sync estão explicitamente desabilitadas até a infraestrutura, os secrets de bootstrap e os manifests migrados serem revisados.
 
 ## Responsabilidades
 
@@ -32,7 +32,7 @@ platform/overlays/homolog/
 clusters/homolog/
 ~~~
 
-Os diretórios base dos serviços estão vazios de propósito no scaffold. Os manifests validados na Fase 2 serão migrados e divididos em uma etapa própria.
+Os overlays renderizam 32 recursos: 11 compartilhados, 4 para auth, 4 para flag, 4 para targeting, 5 para evaluation e 4 para analytics. Há cinco Deployments e propriedade única dos recursos. Identificadores e imagens de bootstrap ainda precisam ser configurados antes da implantação. Apenas homolog será provisionado; produção não é exigida pelo enunciado.
 
 ## Segurança
 

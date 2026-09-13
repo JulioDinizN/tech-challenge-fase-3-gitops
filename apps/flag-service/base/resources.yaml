@@ -1,0 +1,163 @@
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/part-of: togglemaster
+  name: flag-service
+  namespace: togglemaster
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: togglemaster
+  name: flag-service
+  namespace: togglemaster
+spec:
+  ports:
+  - name: http
+    port: 8002
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: flag-service
+    app.kubernetes.io/part-of: togglemaster
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/part-of: togglemaster
+  name: flag-service
+  namespace: togglemaster
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flag-service
+      app.kubernetes.io/part-of: togglemaster
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flag-service
+        app.kubernetes.io/part-of: togglemaster
+    spec:
+      containers:
+      - env:
+        - name: PORT
+          value: '8002'
+        - name: AUTH_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: AUTH_SERVICE_URL
+              name: togglemaster-config
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: FLAG_DB_HOST
+              name: togglemaster-config
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: DB_PORT
+              name: togglemaster-config
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: FLAG_DB_NAME
+              name: togglemaster-config
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              key: FLAG_DB_USER
+              name: togglemaster-config
+        - name: DB_SSLMODE
+          valueFrom:
+            configMapKeyRef:
+              key: DB_SSLMODE
+              name: togglemaster-config
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: DB_PASSWORD
+              name: flag-runtime-secrets
+        image: togglemaster/flag-service:bootstrap
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+        name: flag-service
+        ports:
+        - containerPort: 8002
+          name: http
+        readinessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 300m
+            memory: 256Mi
+          requests:
+            cpu: 75m
+            memory: 96Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /mnt/secrets-store
+          name: secrets-store-inline
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      imagePullSecrets:
+      - name: ocir-pull-secret
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: flag-service
+      volumes:
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: flag-runtime-secrets
+        name: secrets-store-inline
+      - emptyDir:
+          sizeLimit: 64Mi
+        name: tmp
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: flag-runtime-secrets
+  namespace: togglemaster
+spec:
+  parameters:
+    authType: workload
+    secrets: "- name: __OCI_FLAG_APP_PASSWORD_SECRET_NAME__\n  stage: CURRENT\n  fileName:\
+      \ DB_PASSWORD\n"
+    vaultId: __OCI_VAULT_ID__
+  provider: oci
+  secretObjects:
+  - data:
+    - key: DB_PASSWORD
+      objectName: DB_PASSWORD
+    secretName: flag-runtime-secrets
+    type: Opaque
