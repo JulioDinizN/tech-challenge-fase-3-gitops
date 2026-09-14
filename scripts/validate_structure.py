@@ -31,6 +31,20 @@ def validate(root, ready=False):
                     image = d['spec']['template']['spec']['containers'][0]['image']
                     if not re.fullmatch(r'[^\s]+:sha-[0-9a-f]{12}', image):
                         errors.append(f'{owner}: image must use sha-<12 hex>')
+        deployments = {d['metadata']['name']: d for d in docs if d['kind'] == 'Deployment'}
+        for hpa in (d for d in docs if d['kind'] == 'HorizontalPodAutoscaler'):
+            target = hpa['spec']['scaleTargetRef']['name']
+            deployment = deployments.get(target)
+            if deployment is None:
+                errors.append(f'{owner}: HPA target {target} must belong to the same application')
+                continue
+            try:
+                hpa_wave = int(hpa['metadata'].get('annotations', {}).get('argocd.argoproj.io/sync-wave', '0'))
+                deployment_wave = int(deployment['metadata'].get('annotations', {}).get('argocd.argoproj.io/sync-wave', '0'))
+                if hpa_wave <= deployment_wave:
+                    errors.append(f'{owner}: HPA must sync after its Deployment to avoid bootstrap health failure')
+            except ValueError:
+                errors.append(f'{owner}: sync-wave must be an integer')
         for d in docs:
             key = (d['apiVersion'], d['kind'], d['metadata'].get('namespace', ''), d['metadata']['name'])
             if key in owners:

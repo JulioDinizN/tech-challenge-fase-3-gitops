@@ -141,6 +141,8 @@ metadata:
     app.kubernetes.io/part-of: togglemaster
   name: analytics-service
   namespace: togglemaster
+  annotations:
+    argocd.argoproj.io/sync-wave: '2'
 spec:
   behavior:
     scaleDown:
