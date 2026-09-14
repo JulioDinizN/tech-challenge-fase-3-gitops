@@ -6,8 +6,8 @@ resources:
 
 images:
   - name: togglemaster/evaluation-service
-    newName: ocir.invalid/togglemaster-phase3/evaluation-service
-    newTag: bootstrap
+    newName: iad.ocir.io/idjtuagz9un0/togglemaster/evaluation-service
+    newTag: sha-15ca04f4d523
 
 labels:
   - pairs:

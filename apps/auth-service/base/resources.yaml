@@ -153,11 +153,11 @@ metadata:
 spec:
   parameters:
     authType: workload
-    secrets: "- name: __OCI_AUTH_APP_PASSWORD_SECRET_NAME__\n  stage: CURRENT\n  fileName:\
-      \ DB_PASSWORD\n- name: __OCI_AUTH_MASTER_KEY_SECRET_NAME__\n  stage: CURRENT\n\
-      \  fileName: MASTER_KEY\n- name: __OCI_INTERNAL_API_KEY_SECRET_NAME__\n  stage:\
+    secrets: "- name: togglemaster-auth-service-app-password\n  stage: CURRENT\n  fileName:\
+      \ DB_PASSWORD\n- name: togglemaster-auth-master-key\n  stage: CURRENT\n\
+      \  fileName: MASTER_KEY\n- name: togglemaster-internal-api-key\n  stage:\
       \ CURRENT\n  fileName: BOOTSTRAP_API_KEY\n"
-    vaultId: __OCI_VAULT_ID__
+    vaultId: ocid1.vault.oc1.iad.ejvkovgxaafh6.abuwcljtfemgj75poo34ezder6blmj24rz3oes2xqjrtexqf3jwmvowffoeq
   provider: oci
   secretObjects:
   - data:

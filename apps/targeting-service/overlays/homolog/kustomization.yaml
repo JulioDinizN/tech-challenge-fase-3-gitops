@@ -6,8 +6,8 @@ resources:
 
 images:
   - name: togglemaster/targeting-service
-    newName: ocir.invalid/togglemaster-phase3/targeting-service
-    newTag: bootstrap
+    newName: iad.ocir.io/idjtuagz9un0/togglemaster/targeting-service
+    newTag: sha-15ca04f4d523
 
 labels:
   - pairs:

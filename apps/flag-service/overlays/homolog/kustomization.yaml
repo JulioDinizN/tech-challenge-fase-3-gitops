@@ -6,8 +6,8 @@ resources:
 
 images:
   - name: togglemaster/flag-service
-    newName: ocir.invalid/togglemaster-phase3/flag-service
-    newTag: bootstrap
+    newName: iad.ocir.io/idjtuagz9un0/togglemaster/flag-service
+    newTag: sha-15ca04f4d523
 
 labels:
   - pairs:

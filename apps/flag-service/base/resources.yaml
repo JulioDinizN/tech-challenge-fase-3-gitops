@@ -151,9 +151,9 @@ metadata:
 spec:
   parameters:
     authType: workload
-    secrets: "- name: __OCI_FLAG_APP_PASSWORD_SECRET_NAME__\n  stage: CURRENT\n  fileName:\
+    secrets: "- name: togglemaster-flag-service-app-password\n  stage: CURRENT\n  fileName:\
       \ DB_PASSWORD\n"
-    vaultId: __OCI_VAULT_ID__
+    vaultId: ocid1.vault.oc1.iad.ejvkovgxaafh6.abuwcljtfemgj75poo34ezder6blmj24rz3oes2xqjrtexqf3jwmvowffoeq
   provider: oci
   secretObjects:
   - data:

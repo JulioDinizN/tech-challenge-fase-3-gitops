@@ -73,24 +73,24 @@ metadata:
 apiVersion: v1
 data:
   ANALYTICS_WORKER_ENABLED: 'true'
-  AUTH_DB_HOST: __OCI_AUTH_DB_HOST__
+  AUTH_DB_HOST: 10.0.32.54
   AUTH_DB_NAME: auth_db
   AUTH_DB_USER: auth_app
   AUTH_SERVICE_URL: http://auth-service:8001
   DB_PORT: '5432'
   DB_SSLMODE: require
-  FLAG_DB_HOST: __OCI_FLAG_DB_HOST__
+  FLAG_DB_HOST: 10.0.32.60
   FLAG_DB_NAME: flags_db
   FLAG_DB_USER: flags_app
   FLAG_SERVICE_URL: http://flag-service:8002
   OCI_AUTH_MODE: workload_identity
-  OCI_COMPARTMENT_OCID: __OCI_COMPARTMENT_OCID__
-  OCI_NOSQL_TABLE: __OCI_NOSQL_TABLE_OCID__
-  OCI_QUEUE_MESSAGES_ENDPOINT: __OCI_QUEUE_MESSAGES_ENDPOINT__
-  OCI_QUEUE_OCID: __OCI_QUEUE_OCID__
-  OCI_REGION: __OCI_REGION__
-  REDIS_URL: __OCI_REDIS_URL__
-  TARGETING_DB_HOST: __OCI_TARGETING_DB_HOST__
+  OCI_COMPARTMENT_OCID: ocid1.tenancy.oc1..aaaaaaaadbgbttiwmuzl7fbqgaim6iyylzuqptvr7l35fhpms4h3gwzrvava
+  OCI_NOSQL_TABLE: ocid1.nosqltable.oc1.iad.amaaaaaa6s4me3aaqff2mno7esr443t3zls57kvgz5vwt2ttguafv4tjtavq
+  OCI_QUEUE_MESSAGES_ENDPOINT: https://cell-1.queue.messaging.us-ashburn-1.oci.oraclecloud.com
+  OCI_QUEUE_OCID: ocid1.queue.oc1.iad.amaaaaaa6s4me3aahlimmjinf7s22vyx65utnxjyaf4aalss2lavn2y3tnwq
+  OCI_REGION: us-ashburn-1
+  REDIS_URL: rediss://aaa6s4me3aaoyqhhdjfmut76znnswenv7zkxsa3q3ersnnpsd5dnaja-p.redis.us-ashburn-1.oci.oraclecloud.com:6379
+  TARGETING_DB_HOST: 10.0.32.233
   TARGETING_DB_NAME: targeting_db
   TARGETING_DB_USER: targeting_app
   TARGETING_SERVICE_URL: http://targeting-service:8003
@@ -454,10 +454,10 @@ metadata:
 spec:
   parameters:
     authType: workload
-    secrets: "- name: __OCI_AUTH_ADMIN_PASSWORD_SECRET_NAME__\n  stage: CURRENT\n\
-      \  fileName: admin-password\n- name: __OCI_AUTH_APP_PASSWORD_SECRET_NAME__\n\
+    secrets: "- name: togglemaster-auth-service-postgres-admin-password\n  stage: CURRENT\n\
+      \  fileName: admin-password\n- name: togglemaster-auth-service-app-password\n\
       \  stage: CURRENT\n  fileName: app-password\n"
-    vaultId: __OCI_VAULT_ID__
+    vaultId: ocid1.vault.oc1.iad.ejvkovgxaafh6.abuwcljtfemgj75poo34ezder6blmj24rz3oes2xqjrtexqf3jwmvowffoeq
   provider: oci
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
@@ -470,10 +470,10 @@ metadata:
 spec:
   parameters:
     authType: workload
-    secrets: "- name: __OCI_FLAG_ADMIN_PASSWORD_SECRET_NAME__\n  stage: CURRENT\n\
-      \  fileName: admin-password\n- name: __OCI_FLAG_APP_PASSWORD_SECRET_NAME__\n\
+    secrets: "- name: togglemaster-flag-service-postgres-admin-password\n  stage: CURRENT\n\
+      \  fileName: admin-password\n- name: togglemaster-flag-service-app-password\n\
       \  stage: CURRENT\n  fileName: app-password\n"
-    vaultId: __OCI_VAULT_ID__
+    vaultId: ocid1.vault.oc1.iad.ejvkovgxaafh6.abuwcljtfemgj75poo34ezder6blmj24rz3oes2xqjrtexqf3jwmvowffoeq
   provider: oci
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
@@ -486,8 +486,8 @@ metadata:
 spec:
   parameters:
     authType: workload
-    secrets: "- name: __OCI_TARGETING_ADMIN_PASSWORD_SECRET_NAME__\n  stage: CURRENT\n\
-      \  fileName: admin-password\n- name: __OCI_TARGETING_APP_PASSWORD_SECRET_NAME__\n\
+    secrets: "- name: togglemaster-targeting-service-postgres-admin-password\n  stage: CURRENT\n\
+      \  fileName: admin-password\n- name: togglemaster-targeting-service-app-password\n\
       \  stage: CURRENT\n  fileName: app-password\n"
-    vaultId: __OCI_VAULT_ID__
+    vaultId: ocid1.vault.oc1.iad.ejvkovgxaafh6.abuwcljtfemgj75poo34ezder6blmj24rz3oes2xqjrtexqf3jwmvowffoeq
   provider: oci

@@ -184,9 +184,9 @@ metadata:
 spec:
   parameters:
     authType: workload
-    secrets: "- name: __OCI_INTERNAL_API_KEY_SECRET_NAME__\n  stage: CURRENT\n  fileName:\
+    secrets: "- name: togglemaster-internal-api-key\n  stage: CURRENT\n  fileName:\
       \ SERVICE_API_KEY\n"
-    vaultId: __OCI_VAULT_ID__
+    vaultId: ocid1.vault.oc1.iad.ejvkovgxaafh6.abuwcljtfemgj75poo34ezder6blmj24rz3oes2xqjrtexqf3jwmvowffoeq
   provider: oci
   secretObjects:
   - data:
