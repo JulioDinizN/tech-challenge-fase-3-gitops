@@ -7,7 +7,7 @@ resources:
 images:
   - name: togglemaster/targeting-service
     newName: iad.ocir.io/idjtuagz9un0/togglemaster/targeting-service
-    newTag: sha-15ca04f4d523
+    newTag: sha-4d597c518afc
 
 labels:
   - pairs:
