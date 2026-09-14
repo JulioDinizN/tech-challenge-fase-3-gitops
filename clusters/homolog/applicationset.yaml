@@ -33,6 +33,6 @@ spec:
         namespace: togglemaster
       syncPolicy:
         automated:
-          enabled: false
+          enabled: true
           prune: true
           selfHeal: true
